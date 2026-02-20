@@ -1,13 +1,15 @@
 # ================================================================
-# CYBERSEC ZSH THEME - Security-Focused ZSH Terminal Theme
+# CYBERSEC ZSH THEME - Security-Focused Terminal Theme
 # ================================================================
 # Features: Timestamps, Security Indicators, Git Status, Logging
 # Author: An00byss
-# Version: 1.0
+# Version: 1.1 - Fixed line editing
 # ================================================================
 
 # Enable required zsh options
 setopt PROMPT_SUBST
+setopt PROMPT_CR
+setopt PROMPT_SP
 autoload -Uz vcs_info
 autoload -U colors && colors
 
@@ -60,19 +62,19 @@ fi
 # ================================================================
 zstyle ':vcs_info:*' enable git svn
 zstyle ':vcs_info:*' check-for-changes true
-zstyle ':vcs_info:*' stagedstr "${CYBERSEC_SUCCESS_COLOR}●${CYBERSEC_RESET}"
-zstyle ':vcs_info:*' unstagedstr "${CYBERSEC_WARN_COLOR}●${CYBERSEC_RESET}"
-zstyle ':vcs_info:git:*' formats "${CYBERSEC_GIT_COLOR}${CYBERSEC_GIT_SYMBOL} %b%u%c${CYBERSEC_RESET}"
-zstyle ':vcs_info:git:*' actionformats "${CYBERSEC_ERROR_COLOR}${CYBERSEC_GIT_SYMBOL} %b|%a%u%c${CYBERSEC_RESET}"
+zstyle ':vcs_info:*' stagedstr "%{$fg_bold[green]%}●%{$reset_color%}"
+zstyle ':vcs_info:*' unstagedstr "%{$fg_bold[yellow]%}●%{$reset_color%}"
+zstyle ':vcs_info:git:*' formats "%{$fg_bold[magenta]%}${CYBERSEC_GIT_SYMBOL} %b%u%c%{$reset_color%}"
+zstyle ':vcs_info:git:*' actionformats "%{$fg_bold[red]%}${CYBERSEC_GIT_SYMBOL} %b|%a%u%c%{$reset_color%}"
 
 # ================================================================
 # PRIVILEGE LEVEL DETECTION
 # ================================================================
 function cybersec_privilege_indicator() {
     if [[ $EUID -eq 0 ]]; then
-        echo "${CYBERSEC_ROOT_COLOR}${CYBERSEC_ROOT_SYMBOL} ROOT${CYBERSEC_RESET}"
+        print -n "%{$fg_bold[red]%}${CYBERSEC_ROOT_SYMBOL}%{$reset_color%}"
     else
-        echo "${CYBERSEC_USER_COLOR}${CYBERSEC_USER_SYMBOL}${CYBERSEC_RESET}"
+        print -n "%{$fg_bold[cyan]%}${CYBERSEC_USER_SYMBOL}%{$reset_color%}"
     fi
 }
 
@@ -81,9 +83,9 @@ function cybersec_privilege_indicator() {
 # ================================================================
 function cybersec_connection_type() {
     if [[ -n "$SSH_CLIENT" ]] || [[ -n "$SSH_TTY" ]]; then
-        echo "${CYBERSEC_WARN_COLOR}${CYBERSEC_SSH_SYMBOL} SSH${CYBERSEC_RESET}"
+        print -n "%{$fg_bold[yellow]%}${CYBERSEC_SSH_SYMBOL}%{$reset_color%}"
     else
-        echo "${CYBERSEC_INFO_COLOR}${CYBERSEC_LOCAL_SYMBOL}${CYBERSEC_RESET}"
+        print -n "%{$fg[white]%}${CYBERSEC_LOCAL_SYMBOL}%{$reset_color%}"
     fi
 }
 
@@ -95,15 +97,15 @@ function cybersec_security_status() {
     
     # Check if running in privileged mode
     if [[ $EUID -eq 0 ]]; then
-        sec_status+="${CYBERSEC_ERROR_COLOR}${CYBERSEC_ALERT_SYMBOL}${CYBERSEC_RESET} "
+        sec_status+="%{$fg_bold[red]%}${CYBERSEC_ALERT_SYMBOL}%{$reset_color%} "
     fi
     
     # Check if history logging is enabled
-    if [[ -n "$CYBERSEC_LOGGING_ENABLED" ]]; then
-        sec_status+="${CYBERSEC_SUCCESS_COLOR}${CYBERSEC_SHIELD_SYMBOL}${CYBERSEC_RESET} "
+    if [[ -n "$CYBERSEC_LOGGING_ENABLED" ]] && [[ "$CYBERSEC_LOGGING_ENABLED" == "true" ]]; then
+        sec_status+="%{$fg_bold[green]%}${CYBERSEC_SHIELD_SYMBOL}%{$reset_color%}"
     fi
     
-    echo "$sec_status"
+    print -n "$sec_status"
 }
 
 # ================================================================
@@ -115,17 +117,22 @@ function cybersec_preexec() {
 }
 
 function cybersec_precmd() {
+    local exit_code=$?
+    CYBERSEC_LAST_EXIT_CODE=$exit_code
+    
     # Calculate command execution time
     if [[ -n "$CYBERSEC_CMD_START_TIME" ]]; then
         local elapsed=$(($SECONDS - $CYBERSEC_CMD_START_TIME))
         
         if [[ $elapsed -gt 0 ]]; then
-            CYBERSEC_EXEC_TIME="${CYBERSEC_TIME_COLOR}⏱ ${elapsed}s${CYBERSEC_RESET}"
+            CYBERSEC_EXEC_TIME="%{$fg_bold[yellow]%}⏱${elapsed}s%{$reset_color%}"
         else
             CYBERSEC_EXEC_TIME=""
         fi
         
         unset CYBERSEC_CMD_START_TIME
+    else
+        CYBERSEC_EXEC_TIME=""
     fi
     
     # Update VCS info
@@ -136,35 +143,36 @@ function cybersec_precmd() {
 # TIMESTAMP DISPLAY
 # ================================================================
 function cybersec_timestamp() {
-    echo "${CYBERSEC_TIME_COLOR}[%D{%Y-%m-%d %H:%M:%S}]${CYBERSEC_RESET}"
+    print -n "%{$fg_bold[yellow]%}%D{%H:%M:%S}%{$reset_color%}"
 }
 
 # ================================================================
 # LAST COMMAND STATUS
 # ================================================================
 function cybersec_return_status() {
-    echo "%(?.${CYBERSEC_SUCCESS_COLOR}✓${CYBERSEC_RESET}.${CYBERSEC_ERROR_COLOR}✗ %?${CYBERSEC_RESET})"
+    if [[ $CYBERSEC_LAST_EXIT_CODE -eq 0 ]]; then
+        print -n "%{$fg_bold[green]%}✓%{$reset_color%}"
+    else
+        print -n "%{$fg_bold[red]%}✗%{$reset_color%}"
+    fi
 }
 
 # ================================================================
 # CURRENT WORKING DIRECTORY
 # ================================================================
 function cybersec_current_dir() {
-    echo "${CYBERSEC_PATH_COLOR}%~${CYBERSEC_RESET}"
+    print -n "%{$fg_bold[blue]%}%~%{$reset_color%}"
 }
 
 # ================================================================
 # USERNAME@HOSTNAME
 # ================================================================
 function cybersec_user_host() {
-    local user_color
     if [[ $EUID -eq 0 ]]; then
-        user_color=$CYBERSEC_ROOT_COLOR
+        print -n "%{$fg_bold[red]%}%n%{$reset_color%}@%{$fg_bold[green]%}%m%{$reset_color%}"
     else
-        user_color=$CYBERSEC_USER_COLOR
+        print -n "%{$fg_bold[cyan]%}%n%{$reset_color%}@%{$fg_bold[green]%}%m%{$reset_color%}"
     fi
-    
-    echo "${user_color}%n${CYBERSEC_RESET}${CYBERSEC_INFO_COLOR}@${CYBERSEC_RESET}${CYBERSEC_HOST_COLOR}%m${CYBERSEC_RESET}"
 }
 
 # ================================================================
@@ -173,29 +181,69 @@ function cybersec_user_host() {
 function cybersec_jobs_indicator() {
     local job_count=$(jobs | wc -l | tr -d ' ')
     if [[ $job_count -gt 0 ]]; then
-        echo "${CYBERSEC_WARN_COLOR}⚙ ${job_count}${CYBERSEC_RESET} "
+        print -n "%{$fg_bold[yellow]%}⚙${job_count}%{$reset_color%} "
     fi
 }
 
 # ================================================================
-# PROMPT CONSTRUCTION
+# COMPACT PROMPT CONSTRUCTION (Single line for better editing)
 # ================================================================
-# Top line: Timestamp, User@Host, Connection Type, Security Status
-CYBERSEC_LINE1='╭─$(cybersec_timestamp) $(cybersec_user_host) $(cybersec_connection_type) $(cybersec_security_status)'
 
-# Middle line: Current Directory, Git Info, Jobs, Execution Time
-CYBERSEC_LINE2='├─$(cybersec_current_dir) ${vcs_info_msg_0_} $(cybersec_jobs_indicator)${CYBERSEC_EXEC_TIME}'
+# Option 1: Compact single-line prompt (RECOMMENDED for long commands)
+if [[ "$CYBERSEC_COMPACT_MODE" == "true" ]]; then
+    PROMPT='$(cybersec_timestamp) $(cybersec_user_host) $(cybersec_connection_type) $(cybersec_security_status) $(cybersec_current_dir) ${vcs_info_msg_0_} $(cybersec_jobs_indicator)${CYBERSEC_EXEC_TIME}
+$(cybersec_privilege_indicator) ${CYBERSEC_CMD_SYMBOL} '
 
-# Bottom line: Privilege Indicator, Command Prompt
-CYBERSEC_LINE3='╰─$(cybersec_privilege_indicator) ${CYBERSEC_CMD_SYMBOL} '
+# Option 2: Two-line prompt (better readability, good editing)
+elif [[ "$CYBERSEC_TWOLINES" == "true" ]]; then
+    # First line with info
+    PROMPT='%{$fg[cyan]%}┌─%{$reset_color%}[$(cybersec_timestamp)] $(cybersec_user_host) $(cybersec_connection_type) $(cybersec_security_status) $(cybersec_current_dir) ${vcs_info_msg_0_}
+%{$fg[cyan]%}└─%{$reset_color%}$(cybersec_privilege_indicator) ${CYBERSEC_CMD_SYMBOL} '
 
-# Combine all lines
-PROMPT="${CYBERSEC_LINE1}
-${CYBERSEC_LINE2}
-${CYBERSEC_LINE3}"
+# Option 3: Original three-line prompt (most info, can affect editing)
+else
+    PROMPT='%{$fg[cyan]%}╭─%{$reset_color%}[$(cybersec_timestamp)] $(cybersec_user_host) $(cybersec_connection_type) $(cybersec_security_status)
+%{$fg[cyan]%}├─%{$reset_color%}$(cybersec_current_dir) ${vcs_info_msg_0_} $(cybersec_jobs_indicator)${CYBERSEC_EXEC_TIME}
+%{$fg[cyan]%}╰─%{$reset_color%}$(cybersec_privilege_indicator) %{$reset_color%}'
+fi
 
 # Right prompt: Return status
 RPROMPT='$(cybersec_return_status)'
+
+# ================================================================
+# ZLE WIDGETS FOR BETTER EDITING (FIX FOR CTRL+ARROW)
+# ================================================================
+
+# Ensure ZLE is properly initialized
+autoload -Uz select-word-style
+select-word-style bash
+
+# Fix word movements
+autoload -U select-word-style
+select-word-style bash
+
+# Bind keys for better navigation
+bindkey '^[[1;5C' forward-word                    # Ctrl+Right
+bindkey '^[[1;5D' backward-word                   # Ctrl+Left
+bindkey '^[[3~' delete-char                       # Delete
+bindkey '^[[H' beginning-of-line                  # Home
+bindkey '^[[F' end-of-line                        # End
+bindkey '^[[5~' up-line-or-history               # Page Up
+bindkey '^[[6~' down-line-or-history             # Page Down
+
+# Alternative bindings for different terminal emulators
+bindkey '^[OC' forward-word                       # Ctrl+Right (alt)
+bindkey '^[OD' backward-word                      # Ctrl+Left (alt)
+bindkey '^[[1;2C' forward-word                    # Shift+Right
+bindkey '^[[1;2D' backward-word                   # Shift+Left
+
+# Emacs-style navigation (backup)
+bindkey '^F' forward-word
+bindkey '^B' backward-word
+bindkey '^A' beginning-of-line
+bindkey '^E' end-of-line
+bindkey '^K' kill-line
+bindkey '^U' backward-kill-line
 
 # ================================================================
 # HOOK REGISTRATION
@@ -280,6 +328,52 @@ function cybersec_reload_plugins() {
 }
 
 # ================================================================
+# PROMPT MODE SWITCHING
+# ================================================================
+function cybersec_prompt_mode() {
+    local mode=${1:-help}
+    
+    case $mode in
+        compact)
+            export CYBERSEC_COMPACT_MODE=true
+            export CYBERSEC_TWOLINES=false
+            print -P "%F{green}✓%f Switched to compact mode (single line)"
+            ;;
+        two)
+            export CYBERSEC_COMPACT_MODE=false
+            export CYBERSEC_TWOLINES=true
+            print -P "%F{green}✓%f Switched to two-line mode"
+            ;;
+        full)
+            export CYBERSEC_COMPACT_MODE=false
+            export CYBERSEC_TWOLINES=false
+            print -P "%F{green}✓%f Switched to full mode (three lines)"
+            ;;
+        help|*)
+            echo "Usage: cybersec_prompt_mode <mode>"
+            echo ""
+            echo "Available modes:"
+            echo "  compact  - Single line (best for long commands)"
+            echo "  two      - Two lines (balanced)"
+            echo "  full     - Three lines (most information)"
+            echo ""
+            echo "Current mode: "
+            if [[ "$CYBERSEC_COMPACT_MODE" == "true" ]]; then
+                echo "  compact"
+            elif [[ "$CYBERSEC_TWOLINES" == "true" ]]; then
+                echo "  two"
+            else
+                echo "  full"
+            fi
+            return
+            ;;
+    esac
+    
+    # Reload theme
+    source ~/.zsh/cybersec/themes/cybersec.zsh-theme
+}
+
+# ================================================================
 # AUTO-LOAD CORE PLUGINS
 # ================================================================
 if [[ -d "${CYBERSEC_PLUGIN_DIRS[core]}" ]]; then
@@ -296,7 +390,7 @@ fi
 function cybersec_theme_info() {
     print -P ""
     print -P "%F{cyan}╔════════════════════════════════════════════╗%f"
-    print -P "%F{cyan}║%f    %F{green}CyberSec ZSH Theme v1.0%f            %F{cyan}║%f"
+    print -P "%F{cyan}║%f    %F{green}CyberSec ZSH Theme v1.1%f            %F{cyan}║%f"
     print -P "%F{cyan}╠════════════════════════════════════════════╣%f"
     print -P "%F{cyan}║%f  Features:                                %F{cyan}║%f"
     print -P "%F{cyan}║%f    ${CYBERSEC_SHIELD_SYMBOL}  Security Status Indicators         %F{cyan}║%f"
@@ -305,19 +399,19 @@ function cybersec_theme_info() {
     print -P "%F{cyan}║%f    ⏱  Execution Time Tracking            %F{cyan}║%f"
     print -P "%F{cyan}║%f    📝  History Management                 %F{cyan}║%f"
     print -P "%F{cyan}║%f    🔌  Plugin Support                     %F{cyan}║%f"
+    print -P "%F{cyan}║%f    ⌨️  Enhanced Line Editing              %F{cyan}║%f"
     print -P "%F{cyan}╠════════════════════════════════════════════╣%f"
-    print -P "%F{cyan}║%f  Status:                                 %F{cyan}║%f"
-    print -P "%F{cyan}║%f    Logging: $(if [[ -n "$CYBERSEC_LOGGING_ENABLED" ]]; then print -P "%F{green}Enabled%f "; else print -P "%F{red}Disabled%f"; fi)                   %F{cyan}║%f"
-    print -P "%F{cyan}║%f    User: %F{yellow}$(whoami)%f                          %F{cyan}║%f"
-    print -P "%F{cyan}║%f    Host: %F{yellow}$(hostname)%f                    %F{cyan}║%f"
+    print -P "%F{cyan}║%f  Keyboard Shortcuts:                     %F{cyan}║%f"
+    print -P "%F{cyan}║%f    Ctrl+→/←    Navigate by word          %F{cyan}║%f"
+    print -P "%F{cyan}║%f    Ctrl+A/E    Start/End of line         %F{cyan}║%f"
+    print -P "%F{cyan}║%f    Ctrl+K/U    Kill line forward/back    %F{cyan}║%f"
     print -P "%F{cyan}╠════════════════════════════════════════════╣%f"
     print -P "%F{cyan}║%f  Commands:                               %F{cyan}║%f"
-    print -P "%F{cyan}║%f    cybersec_theme_info                   %F{cyan}║%f"
+    print -P "%F{cyan}║%f    cybersec_prompt_mode <mode>           %F{cyan}║%f"
+    print -P "%F{cyan}║%f      compact/two/full                    %F{cyan}║%f"
     print -P "%F{cyan}║%f    cybersec_list_plugins                 %F{cyan}║%f"
-    print -P "%F{cyan}║%f    cybersec_load_plugin <name> [type]    %F{cyan}║%f"
     print -P "%F{cyan}║%f    logsearch <term> [days]               %F{cyan}║%f"
     print -P "%F{cyan}║%f    logsummary [days]                     %F{cyan}║%f"
-    print -P "%F{cyan}║%f    hstats                                %F{cyan}║%f"
     print -P "%F{cyan}╚════════════════════════════════════════════╝%f"
     print -P ""
 }
@@ -327,6 +421,16 @@ function cybersec_theme_info() {
 # ================================================================
 print -P ""
 print -P "%F{green}✓%f CyberSec ZSH Theme Loaded"
-print -P "  Type %F{cyan}cybersec_theme_info%f for more information"
-print -P ""
 
+# Show current mode
+if [[ "$CYBERSEC_COMPACT_MODE" == "true" ]]; then
+    print -P "  Mode: %F{cyan}Compact (single line)%f"
+elif [[ "$CYBERSEC_TWOLINES" == "true" ]]; then
+    print -P "  Mode: %F{cyan}Two-line%f"
+else
+    print -P "  Mode: %F{cyan}Full (three lines)%f"
+fi
+
+print -P "  Type %F{cyan}cybersec_theme_info%f for help"
+print -P "  Type %F{cyan}cybersec_prompt_mode compact%f for better long command editing"
+print -P ""
