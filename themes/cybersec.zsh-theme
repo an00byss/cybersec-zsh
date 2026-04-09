@@ -223,27 +223,27 @@ autoload -U select-word-style
 select-word-style bash
 
 # Bind keys for better navigation
-bindkey '^[[1;5C' forward-word                    # Ctrl+Right
-bindkey '^[[1;5D' backward-word                   # Ctrl+Left
-bindkey '^[[3~' delete-char                       # Delete
-bindkey '^[[H' beginning-of-line                  # Home
-bindkey '^[[F' end-of-line                        # End
-bindkey '^[[5~' up-line-or-history               # Page Up
-bindkey '^[[6~' down-line-or-history             # Page Down
+#bindkey '^[[1;5C' forward-word                    # Ctrl+Right
+#bindkey '^[[1;5D' backward-word                   # Ctrl+Left
+#bindkey '^[[3~' delete-char                       # Delete
+#bindkey '^[[H' beginning-of-line                  # Home
+#bindkey '^[[F' end-of-line                        # End
+#bindkey '^[[5~' up-line-or-history               # Page Up
+#bindkey '^[[6~' down-line-or-history             # Page Down
 
 # Alternative bindings for different terminal emulators
-bindkey '^[OC' forward-word                       # Ctrl+Right (alt)
-bindkey '^[OD' backward-word                      # Ctrl+Left (alt)
-bindkey '^[[1;2C' forward-word                    # Shift+Right
-bindkey '^[[1;2D' backward-word                   # Shift+Left
+#bindkey '^[OC' forward-word                       # Ctrl+Right (alt)
+#bindkey '^[OD' backward-word                      # Ctrl+Left (alt)
+#bindkey '^[[1;2C' forward-word                    # Shift+Right
+#bindkey '^[[1;2D' backward-word                   # Shift+Left
 
 # Emacs-style navigation (backup)
-bindkey '^F' forward-word
-bindkey '^B' backward-word
-bindkey '^A' beginning-of-line
-bindkey '^E' end-of-line
-bindkey '^K' kill-line
-bindkey '^U' backward-kill-line
+#bindkey '^F' forward-word
+#bindkey '^B' backward-word
+#bindkey '^A' beginning-of-line
+#bindkey '^E' end-of-line
+#bindkey '^K' kill-line
+#bindkey '^U' backward-kill-line
 
 # ================================================================
 # HOOK REGISTRATION
