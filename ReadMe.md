@@ -1,39 +1,33 @@
-
 # Cyber ZSH Theme
 
 ## Features Summary:
-✅ Security Features:
-🔐 Privilege level indicators (Root/User)
-🌐 SSH vs Local connection detection
-⚠️ Dangerous command detection
-🛡️ Security status indicators
-👑 Visual root access warnings
+*   **Security Indicators:** Tracks privilege levels (Root/User) and detects connection type (SSH vs. Local).
+*   **Safety Features:** Includes detection warnings for dangerous commands and displays real-time security status indicators.
+*   **Visual Warnings:** Provides visual alerts for root access usage.
 
-##  Logging Capabilities:
-📝 Per-command logging with timestamps
-🔍 Full audit trail (user, host, PID, command, exit code)
-📊 Separate error and audit logs
-🔄 Automatic log rotation and compression
-🔎 Log search utilities
-💾 Automatic history backups
+## Logging Capabilities:
+*   **Auditing:** Logs every command executed with timestamps.
+*   **Full Audit Trail:** Records detailed information including user, host, PID, the command run, and exit code.
+*   **Logging Management:** Maintains separate error logs and audit logs.
+*   **Maintenance:** Features automatic log rotation and compression utilities.
+*   **Utility:** Includes search functions for reviewing logged history and supports automated history backups.
 
 ## History Management:
-⏰ Timestamps for every command
-💪 1,000,000 command history
-🔄 Automatic daily backups
-📈 History statistics and analysis
-🧹 History sanitization tools
-📅 Timeline views
+*   **Detail Tracking:** Stores timestamps for every command executed.
+*   **Capacity:** Supports a large command history capacity (e.g., 1,000,000 commands).
+*   **Backup:** Implements automatic daily backups of the command history.
+*   **Analysis:** Provides statistics and analysis tools for usage patterns.
+*   **Maintenance:** Includes utilities for sanitizing historical data and generating timeline views.
 
 ## Plugin Support:
-🔌 Modular plugin architecture
-📁 Organized plugin directories (core/custom/security)
-⚡ Easy plugin loading system
-🔧 Extensible design
+*   **Architecture:** Uses a modular plugin architecture for extensibility.
+*   **Organization:** Maintains clearly organized directories (core/custom/security) for plugins.
+*   **Loading System:** Features an easy-to-use plugin loading system.
+*   **Design:** Designed to be highly extensible and maintainable.
 
 ## User Interface:
-🎨 Color-coded security status
-⏱️ Command execution time tracking
-✓/✗ Command success/failure indicators
-🌳 Git branch and status integration
-📍 Current working directory display
+*   **Status Display:** Provides color-coded security status indicators.
+*   **Performance:** Tracks command execution time.
+*   **Feedback:** Displays clear success or failure indicators for commands.
+*   **Integration:** Integrates Git branch and status information into the prompt.
+*   **Context:** Always displays the current working directory location.
